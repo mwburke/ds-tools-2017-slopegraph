@@ -1,0 +1,13 @@
+Tool,Users,After,Before
+Scala,214,7.4,6.2
+Tensorflow,581,20.2,6.8
+Anaconda,629,21.8,16
+Java,399,13.8,16.8
+scikit-learn,561,19.5,17.2
+Spark,654,22.7,21.6
+Hadoop,431,15,22.1
+RapidMiner,946,32.8,32.6
+Excel,810,28.1,33.6
+SQL,1006,34.9,35.5
+Python,1516,52.6,45.8
+R,1502,52.1,49
