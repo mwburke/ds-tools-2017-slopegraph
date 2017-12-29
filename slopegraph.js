@@ -2,10 +2,11 @@
 d3.json('data.json', function(error, data) {
 	if (error) throw error;
 
-
+	// Label each point as increasing/decreasing above thresholds
+	// or just little to no change
 	var arrayLength = data.length;
 	for (var i = 0; i < arrayLength; i++) {
-	    change = data[i]['After'] - data[i]['Before']
+	    change = data[i]['After'] - data[i]['Before'];
 	    if (change < -3) {
 	    	data[i]['Change'] = 'negative';
 	    } else if (change > 5) {
@@ -14,17 +15,12 @@ d3.json('data.json', function(error, data) {
 	    	data[i]['Change'] = 'neutral';
 	    }
 	}
-	console.log(data);
-
 
 	var opts = {
 		width: 600,
 		height: 500,
 		margin: {top: 20, right: 100, bottom: 30, left: 150}
 	};
-
-	// TODO Calculate label placement for less confusion... 
-
 
 	// Calculate area chart takes up out of entire svg
 	var chartHeight = opts.height - opts.margin.top - opts.margin.bottom;
@@ -38,6 +34,59 @@ d3.json('data.json', function(error, data) {
 
 	// Create scale for positioning data correctly in chart
 	var vertScale = d3.scaleLinear().domain([6, 53]).range([opts.margin.bottom, chartHeight]);
+
+	// Labels overlap, need to precompute chart height placement
+	// and adjust to avoid label overlap
+
+	// First, calculate the right and left side chart placements
+	for (var i = 0; i < arrayLength; i++) {
+		data[i]['AfterY'] = vertScale(data[i]['After']);
+		data[i]['BeforeY'] = vertScale(data[i]['Before']);
+	}
+
+	// Next, use a basic heuristic to pull labels up or down
+	// If next item is too close to next one, move label up
+	// If next item is too close and item above has been moved up, keep the same value,
+	// and move next value down
+
+	data.sort(function(a, b) {
+		return b.Before-a.Before;
+	})
+
+	
+
+	for (var i = 1; i < (arrayLength - 1); i++) {
+		if ((data[i]['BeforeY']-data[i+1]['BeforeY']) < 15) {
+			if ((data[i-1]['BeforeY']-data[i]['BeforeY']) < 15) {
+				data[i+1]['BeforeY'] = data[i+1]['BeforeY'] - 10;
+			} else {
+				data[i]['BeforeY'] = data[i]['BeforeY'] + 10;
+			}
+		}
+	}
+
+	data.sort(function(a, b) {
+		return b.After-a.After;
+	})
+
+	console.log(data);
+
+	for (var i = 1; i < (arrayLength - 1); i++) {
+
+		if ((data[i]['AfterY']-data[i+1]['AfterY']) < 15) {
+			if ((data[i-1]['AfterY']-data[i]['AfterY']) < 15) {
+				data[i+1]['AfterY'] = data[i+1]['AfterY'] - 10;
+			} else {
+				data[i]['AfterY'] = data[i]['AfterY'] + 10;
+			}
+		} else if ((data[i-1]['AfterY']-data[i]['AfterY']) < 15) {
+			data[i]['AfterY'] = data[i]['AfterY'] - 10;
+		} 
+	}
+
+	data.sort(function(a, b) {
+		return b.Before-a.Before;
+	})
 
 	// Create slopegraph labels
 	svg.selectAll('text.labels')
@@ -53,7 +102,7 @@ d3.json('data.json', function(error, data) {
 		.attr('text-anchor', 'end')
 		.attr('x', opts.margin.left * .6)
 		.attr('y', function(d) { 
-			return opts.margin.top + chartHeight - vertScale(d.Before);
+			return opts.margin.top + chartHeight - d.BeforeY;
 		})
 		.attr('dy', '.35em');
 	
@@ -71,7 +120,7 @@ d3.json('data.json', function(error, data) {
 		.attr('text-anchor', 'end')
 		.attr('x', opts.margin.left * .85)
 		.attr('y', function(d) { 
-			return opts.margin.top + chartHeight - vertScale(d.Before);
+			return opts.margin.top + chartHeight - d.BeforeY;
 		})
 		.attr('dy', '.35em');
 
@@ -89,7 +138,7 @@ d3.json('data.json', function(error, data) {
 		.attr('text-anchor', 'start')
 		.attr('x', chartWidth + opts.margin.right)
 		.attr('y', function(d) { 
-			return opts.margin.top + chartHeight - vertScale(d.After);
+			return opts.margin.top + chartHeight - d.AfterY;
 		})
 		.attr('dy', '.35em');
 
@@ -201,7 +250,7 @@ d3.json('data.json', function(error, data) {
 		.attr('text-anchor', 'start')
 		.attr('x', chartWidth + opts.margin.right)
 		.attr('y', function(d) {
-			return opts.margin.top + chartHeight - vertScale(d.After);
+			return opts.margin.top + chartHeight - d.AfterY;
 		})
 		.attr('dy', '.25em')
 		.call(wrap, opts.margin.right);
