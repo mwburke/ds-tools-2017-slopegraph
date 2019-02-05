@@ -2,7 +2,7 @@
 Slopegraph for data science tools comparing 2016 to 2017
 
 
-Hosted version of the slopegraph along with explanation can be found on my blog [here (TBD)](TBD)
+Hosted version of the slopegraph along with explanation can be found on my blog [here](https://mwburke.github.io/2017/12/28/slopegraph-vs-barchart.html)
 
 If you don't want to read and just want to look at it, you can find it [here](http://bl.ocks.org/mwburke/9873c09ac6c21d6ac9153e54892cf5ec)
 
